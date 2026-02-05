@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Store | متجر مصر الأول</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap'); body { font-family: 'Cairo', sans-serif; }</style>
+</head>
+<body class="bg-gray-50">
+
+<header class="bg-black text-white p-4 sticky top-0 z-50 shadow-lg border-b-2 border-yellow-500">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-black">TECH<span class="text-yellow-500">STORE</span></h1>
+        <div onclick="toggleSection('cart')" class="relative cursor-pointer">
+            <i class="fa fa-shopping-cart text-2xl"></i>
+            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto p-4 py-10">
+    <section id="store-view">
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <p class="col-span-full text-center py-10">جاري تحميل أحدث المنتجات...</p>
+        </div>
+    </section>
+
+    <section id="cart-view" class="hidden">
+        <h2 class="text-3xl font-black mb-8">سلة مشترياتك</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="cart-items" class="lg:col-span-2 space-y-4"></div>
+            <div class="bg-white p-6 rounded-2xl shadow-lg border-t-4 border-yellow-500 h-fit">
+                <h3 class="text-xl font-bold mb-4">تفاصيل الحساب</h3>
+                <div class="flex justify-between mb-2"><span>الإجمالي:</span> <span id="subtotal">0</span> ج.م</div>
+                <div class="flex justify-between mb-4 text-green-600 font-bold"><span>الخصم:</span> <span id="discount-val">0</span> ج.م</div>
+                <div class="text-2xl font-black mb-6 text-yellow-600 border-t pt-2">الإجمالي النهائي: <span id="total-price">0</span> ج.م</div>
+                
+                <div class="flex gap-2 mb-6">
+                    <input id="coupon-code" placeholder="كود الخصم" class="flex-1 border p-2 rounded-lg outline-none">
+                    <button onclick="applyCoupon()" class="bg-black text-white px-4 rounded-lg">تطبيق</button>
+                </div>
+
+                <form id="order-form" onsubmit="sendOrder(event)" class="space-y-3">
+                    <input required id="c-name" placeholder="الاسم بالكامل" class="w-full border p-3 rounded-xl">
+                    <input required id="c-phone" type="tel" placeholder="رقم الموبايل" class="w-full border p-3 rounded-xl">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input required id="c-home" placeholder="رقم المنزل" class="border p-3 rounded-xl text-sm">
+                        <input required id="c-floor" placeholder="الدور" class="border p-3 rounded-xl text-sm">
+                        <input required id="c-flat" placeholder="الشقة" class="border p-3 rounded-xl text-sm">
+                    </div>
+                    <textarea required id="c-address" placeholder="العنوان بالتفصيل (المنطقة والشارع)" class="w-full border p-3 rounded-xl h-24"></textarea>
+                    <button class="w-full bg-green-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-green-700">تأكيد الأوردر كاش</button>
+                    <button type="button" onclick="toggleSection('store')" class="w-full text-gray-500 text-sm">رجوع للمتجر</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const DB_URL = "https://tech-store-71bce-default-rtdb.firebaseio.com/"; //
+    let cart = [];
+    let activeDiscount = 0;
+
+    async function loadProducts() {
+        const res = await fetch(DB_URL + "products.json");
+        const data = await res.json();
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = "";
+        if(!data) return grid.innerHTML = "المتجر فارغ";
+        
+        Object.keys(data).forEach(key => {
+            const p = data[key];
+            if(p.stock <= 0) return;
+            grid.innerHTML += `
+                <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 p-4">
+                    <img src="${p.img}" class="w-full h-48 object-cover rounded-xl mb-4">
+                    <h3 class="font-bold text-lg mb-2">${p.name}</h3>
+                    <div class="text-xl font-black text-yellow-600 mb-4">${p.price} ج.م</div>
+                    <button onclick="addToCart('${key}', '${p.name}', ${p.price}, '${p.img}')" class="w-full bg-black text-white py-3 rounded-xl font-bold hover:bg-yellow-500 transition">إضافة للسلة</button>
+                </div>`;
+        });
+    }
+
+    function addToCart(id, name, price, img) {
+        cart.push({id, name, price, img});
+        updateUI();
+        alert('تمت الإضافة!');
+    }
+
+    function updateUI() {
+        document.getElementById('cart-count').innerText = cart.length;
+        let sub = cart.reduce((a, b) => a + b.price, 0);
+        let disc = sub * (activeDiscount / 100);
+        document.getElementById('subtotal').innerText = sub;
+        document.getElementById('discount-val').innerText = disc.toFixed(0);
+        document.getElementById('total-price').innerText = (sub - disc).toFixed(0);
+    }
+
+    function toggleSection(sec) {
+        document.getElementById('store-view').classList.toggle('hidden', sec === 'cart');
+        document.getElementById('cart-view').classList.toggle('hidden', sec === 'store');
+        if(sec === 'cart') renderCart();
+    }
+
+    function renderCart() {
+        const list = document.getElementById('cart-items');
+        list.innerHTML = cart.map((item, i) => `
+            <div class="bg-white p-4 rounded-xl flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-4">
+                    <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover">
+                    <div><b>${item.name}</b><br><span class="text-yellow-600">${item.price} ج.م</span></div>
+                </div>
+                <button onclick="cart.splice(${i},1);renderCart();updateUI();" class="text-red-500"><i class="fa fa-trash"></i></button>
+            </div>`).join('');
+    }
+
+    async function applyCoupon() {
+        const code = document.getElementById('coupon-code').value.toUpperCase();
+        const res = await fetch(DB_URL + "coupons.json");
+        const coupons = await res.json();
+        const found = Object.values(coupons || {}).find(c => c.code === code);
+        if(found) {
+            activeDiscount = found.perc;
+            alert(`مبروك! خصم ${found.perc}%`);
+            updateUI();
+        } else alert('كود غير صحيح');
+    }
+
+    async function sendOrder(e) {
+        e.preventDefault();
+        if(cart.length === 0) return alert('السلة فاضية!');
+        const order = {
+            id: Date.now(),
+            customer: document.getElementById('c-name').value,
+            phone: document.getElementById('c-phone').value,
+            fullAddress: `منزل: ${document.getElementById('c-home').value}, دور: ${document.getElementById('c-floor').value}, شقة: ${document.getElementById('c-flat').value} - ${document.getElementById('c-address').value}`,
+            items: cart,
+            total: document.getElementById('total-price').innerText,
+            status: "جديد"
+        };
+        await fetch(DB_URL + "orders.json", { method: 'POST', body: JSON.stringify(order) });
+        alert('تم تأكيد طلبك!');
+        cart = []; location.reload();
+    }
+
+    loadProducts();
+</script>
+</body>
+</html>
