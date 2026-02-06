@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Store | Reda Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #fff; color: #333; }
+        .nav-blue { background-color: #0088ff; }
+        .hero-bg { background-color: #f6f6f6; border-radius: 15px; }
+        .btn-blue { background-color: #0088ff; color: white; padding: 10px 25px; border-radius: 5px; font-weight: bold; }
+        .product-card { border: 1px solid #eee; transition: 0.3s; }
+        .product-card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<header class="bg-white py-4 border-b">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <i class="fa fa-shopping-cart text-3xl text-blue-500"></i>
+            <div>
+                <h1 class="text-2xl font-black leading-none">Reda</h1>
+                <span class="text-xs text-blue-400 font-bold">Online Store</span>
+            </div>
+        </div>
+        
+        <div class="hidden md:flex flex-1 max-w-xl mx-10">
+            <div class="relative w-full">
+                <input type="text" placeholder="البحث عن المنتجات..." class="w-full border-2 border-gray-200 rounded-full py-2 px-5 outline-none focus:border-blue-400">
+                <button class="absolute left-3 top-2 text-gray-400"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6 text-gray-600">
+            <div class="relative cursor-pointer">
+                <i class="fa fa-heart text-xl"></i>
+                <span class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">0</span>
+            </div>
+            <div class="relative cursor-pointer" onclick="toggleCart()">
+                <i class="fa fa-shopping-basket text-xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-blue-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">0</span>
+            </div>
+            <i class="fa fa-user-circle text-2xl cursor-pointer" onclick="location.href='admin.html'"></i>
+        </div>
+    </div>
+</header>
+
+<nav class="nav-blue text-white shadow-md">
+    <div class="container mx-auto px-4 py-2 flex items-center justify-between overflow-x-auto whitespace-nowrap">
+        <div class="flex gap-8 text-sm font-bold uppercase">
+            <a href="#" class="hover:text-black">Home</a>
+            <a href="#" class="hover:text-black">About</a>
+            <a href="#" class="hover:text-black">Accessories</a>
+            <a href="#" class="hover:text-black">Blog</a>
+            <a href="#" class="hover:text-black">Contact</a>
+        </div>
+        <div class="flex gap-4">
+            <i class="fa fa-bars cursor-pointer"></i>
+        </div>
+    </div>
+</nav>
+
+<section class="container mx-auto px-4 mt-8">
+    <div class="hero-bg p-10 flex flex-col md:flex-row items-center justify-between min-h-[400px]">
+        <div class="md:w-1/2 text-right md:text-right">
+            <span class="text-blue-500 font-bold uppercase tracking-widest text-sm">Introducing The New</span>
+            <h2 class="text-5xl font-black text-slate-800 my-4 leading-tight">Microsoft Xbox <br> 360 Controller</h2>
+            <p class="text-gray-500 mb-8">Windows XP/10/7/8 PS3, TV Box</p>
+            <button class="btn-blue hover:bg-black transition">Shop Now</button>
+        </div>
+        <div class="md:w-1/2 mt-10 md:mt-0 flex justify-center">
+            <img src="https://assets.xboxservices.com/assets/2a/3b/2a3b9000-8806-4447-920f-08e040003000.png?n=642123_Large-Hero-0_1080x1080.png" class="max-h-[350px] drop-shadow-2xl">
+        </div>
+    </div>
+</section>
+
+<section class="container mx-auto px-4 py-12">
+    <div class="flex justify-between items-center mb-8 border-b pb-4">
+        <h3 class="text-2xl font-black text-blue-600">Smartphones</h3>
+    </div>
+    
+    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        </div>
+</section>
+
+<footer class="bg-gray-100 py-10 text-center text-gray-500 text-sm">
+    &copy; 2026 Tech Store - Reda Online Store. All Rights Reserved.
+</footer>
+
+<script>
+    const DB_URL = "https://tech-store-71bce-default-rtdb.firebaseio.com/products.json";
+    let cart = [];
+
+    async function loadProducts() {
+        const res = await fetch(DB_URL);
+        const data = await res.json();
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = "";
+        
+        if(!data) return grid.innerHTML = "لا يوجد منتجات حالياً";
+
+        Object.keys(data).forEach(key => {
+            const p = data[key];
+            grid.innerHTML += `
+                <div class="product-card bg-white p-4 rounded-lg flex flex-col items-center text-center">
+                    <img src="${p.img}" class="h-40 object-contain mb-4">
+                    <h4 class="text-sm font-bold text-gray-700 h-10 overflow-hidden">${p.name}</h4>
+                    <div class="text-yellow-400 text-xs my-2">
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star text-gray-300"></i>
+                    </div>
+                    <div class="text-blue-600 font-black text-lg">${p.price} $</div>
+                    <button onclick="addToCart('${p.name}', ${p.price})" class="mt-4 text-gray-400 hover:text-blue-500 transition">
+                        <i class="fa fa-plus-circle text-2xl"></i>
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    function addToCart(n, p) {
+        cart.push({n, p});
+        document.getElementById('cart-count').innerText = cart.length;
+    }
+
+    loadProducts();
+</script>
+</body>
+</html>
