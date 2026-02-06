@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECHSTORE | متجر التكنولوجيا الأول</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #fff; overflow-x: hidden; }
+        .nav-blue { background-color: #0088ff; }
+        .hero-bg { background-color: #f6f6f6; border-radius: 20px; transition: 0.5s; }
+        .product-card { border: 1px solid #eee; transition: 0.3s; position: relative; border-radius: 15px; }
+        .product-card:hover { border-color: #0088ff; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        #cart-modal { background: rgba(0,0,0,0.6); display: none; backdrop-filter: blur(5px); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #0088ff; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<header class="bg-white py-4 border-b sticky top-0 z-40 shadow-sm">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+            <div class="bg-blue-600 p-2 rounded-lg shadow-lg">
+                <i class="fa fa-bolt text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black leading-none tracking-tighter uppercase">TECH<span class="text-blue-600">STORE</span></h1>
+                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Premium Electronics</span>
+            </div>
+        </div>
+        <div class="hidden md:flex flex-1 max-w-lg mx-10">
+            <input type="text" placeholder="ابحث عن أحدث الموبايلات والتقنيات..." class="w-full border-2 border-gray-100 rounded-full py-2 px-6 outline-none focus:border-blue-400 transition-all">
+        </div>
+        <div class="flex items-center gap-6 text-gray-600">
+            <div class="relative cursor-pointer group" onclick="toggleCart(true)">
+                <i class="fa fa-shopping-basket text-2xl group-hover:text-blue-600 transition"></i>
+                <span id="cart-count" class="absolute -top-2 -left-2 bg-blue-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">0</span>
+            </div>
+            <i class="fa fa-user-circle text-2xl cursor-pointer hover:text-blue-600" onclick="window.location.href='admin.html'"></i>
+        </div>
+    </div>
+</header>
+
+<nav class="nav-blue text-white py-3">
+    <div class="container mx-auto px-4 flex gap-8 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <a href="#" class="hover:text-black transition">الرئيسية</a>
+        <a href="#" class="hover:text-black transition">موبايلات</a>
+        <a href="#" class="hover:text-black transition">لابتوب</a>
+        <a href="#" class="hover:text-black transition">إكسسوارات</a>
+        <a href="#" class="hover:text-black transition">عروض وخصومات</a>
+    </div>
+</nav>
+
+<section class="container mx-auto px-4 mt-6">
+    <div id="hero-container" class="hero-bg p-8 md:p-12 flex flex-col md:flex-row items-center justify-between min-h-[400px]">
+        <div class="text-center md:text-right w-full">جاري تحميل العروض الحصرية...</div>
+    </div>
+</section>
+
+<section class="container mx-auto px-4 py-12">
+    <div class="flex items-center gap-3 mb-10">
+        <span class="w-3 h-10 bg-blue-600 rounded-full"></span>
+        <h3 class="text-3xl font-black text-slate-800 tracking-tight">وصل حديثاً</h3>
+    </div>
+    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <p class="col-span-full text-center py-20 text-gray-400 font-bold">جاري تحميل المنتجات من المخزن...</p>
+    </div>
+</section>
+
+<div id="cart-modal" class="fixed inset-0 z-50 flex justify-end">
+    <div class="bg-white w-full max-w-md h-full shadow-2xl p-8 overflow-y-auto animate-slide-in">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-3xl font-black italic">سلتك</h2>
+            <button onclick="toggleCart(false)" class="bg-gray-100 hover:bg-red-500 hover:text-white w-10 h-10 rounded-full transition-all">×</button>
+        </div>
+        
+        <div id="cart-list" class="space-y-6 mb-10"></div>
+        
+        <div class="border-t-2 border-dashed pt-6 space-y-4">
+            <div class="flex justify-between text-xl font-black"><span>الإجمالي:</span> <span id="total" class="text-blue-600">0</span> ج.م</div>
+            <div class="flex gap-2">
+                <input id="coupon" placeholder="عندك كود خصم؟" class="flex-1 border-2 p-3 rounded-xl outline-none focus:border-blue-500">
+                <button onclick="applyCoupon()" class="bg-black text-white px-6 rounded-xl font-bold">تطبيق</button>
+            </div>
+            
+            <div class="bg-gray-50 p-5 rounded-2xl space-y-3 shadow-inner">
+                <h4 class="font-bold border-b pb-2 mb-2">بيانات الشحن 🚚</h4>
+                <input required id="cust-name" placeholder="الاسم بالكامل" class="w-full border p-3 rounded-xl">
+                <input required id="cust-phone" type="tel" placeholder="رقم الموبايل" class="w-full border p-3 rounded-xl">
+                <div class="grid grid-cols-3 gap-2">
+                    <input id="cust-home" placeholder="منزل" class="border p-2 rounded-lg text-center">
+                    <input id="cust-floor" placeholder="دور" class="border p-2 rounded-lg text-center">
+                    <input id="cust-flat" placeholder="شقة" class="border p-2 rounded-lg text-center">
+                </div>
+                <textarea required id="cust-address" placeholder="العنوان بالتفصيل (الشارع والمنطقة)" class="w-full border p-3 rounded-xl h-20"></textarea>
+            </div>
+            <button onclick="checkout()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-black transition-all text-xl">تأكيد الأوردر (كاش)</button>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-slate-900 text-white py-12 text-center">
+    <p class="text-gray-400 font-bold">&copy; 2026 TECHSTORE - جميع الحقوق محفوظة لؤي</p>
+</footer>
+
+<script>
+    const DB = "https://tech-store-71bce-default-rtdb.firebaseio.com/";
+    let cart = [];
+    let discountPerc = 0;
+
+    async function loadData() {
+        // التحميل الهيرو (الإعلان الكبير)
+        const hRes = await fetch(DB + "hero.json");
+        const h = await hRes.json();
+        if(h) {
+            document.getElementById('hero-container').innerHTML = `
+                <div class="md:w-1/2 text-center md:text-right">
+                    <span class="bg-blue-100 text-blue-600 px-4 py-1 rounded-full font-black text-xs uppercase">${h.sub || 'New Arrival'}</span>
+                    <h2 class="text-5xl font-black text-slate-800 mt-4 mb-6 leading-tight">${h.title}</h2>
+                    <p class="text-gray-500 text-lg mb-8 leading-relaxed">${h.desc}</p>
+                    <button class="bg-blue-600 text-white px-10 py-4 rounded-full font-black shadow-lg hover:bg-black transition">اكتشف الآن</button>
+                </div>
+                <div class="md:w-1/2 flex justify-center mt-10 md:mt-0">
+                    <img src="${h.img}" class="max-h-[350px] drop-shadow-2xl animate-pulse-slow">
+                </div>`;
+        }
+
+        // تحميل المنتجات
+        const pRes = await fetch(DB + "products.json");
+        const pData = await pRes.json();
+        const grid = document.getElementById('product-grid');
+        grid.innerHTML = "";
+        if(!pData) return grid.innerHTML = "<p class='col-span-full'>المحل فاضي حالياً</p>";
+        
+        Object.keys(pData).forEach(key => {
+            const p = pData[key];
+            grid.innerHTML += `
+                <div class="product-card bg-white p-5 text-center flex flex-col justify-between">
+                    <div>
+                        <img src="${p.img}" class="h-44 w-full object-contain mb-4">
+                        <h4 class="text-sm font-bold text-gray-700 h-10 overflow-hidden leading-snug">${p.name}</h4>
+                        <div class="text-blue-600 font-black text-xl my-3">${p.price} ج.م</div>
+                    </div>
+                    <button onclick="addToCart('${p.name}', ${p.price}, '${p.img}')" class="bg-gray-100 hover:bg-blue-600 hover:text-white p-3 rounded-xl transition-all">
+                        <i class="fa fa-cart-plus text-xl"></i>
+                    </button>
+                </div>`;
+        });
+    }
+
+    function addToCart(n, p, i) {
+        cart.push({n, p, i});
+        updateUI();
+        alert('أضفت ' + n + ' للسلة ✅');
+    }
+
+    function updateUI() {
+        document.getElementById('cart-count').innerText = cart.length;
+        const list = document.getElementById('cart-list');
+        let total = 0;
+        list.innerHTML = cart.map((item, idx) => {
+            total += item.p;
+            return `
+            <div class="flex items-center gap-4 bg-white border p-3 rounded-2xl shadow-sm">
+                <img src="${item.i}" class="w-14 h-14 object-cover rounded-lg">
+                <div class="flex-1">
+                    <p class="text-xs font-bold leading-tight">${item.n}</p>
+                    <p class="text-blue-600 font-black text-sm mt-1">${item.p} ج.م</p>
+                </div>
+                <button onclick="cart.splice(${idx},1);updateUI();" class="text-red-400 hover:text-red-600 px-2 text-xl">×</button>
+            </div>`;
+        }).join('');
+        const finalPrice = total - (total * (discountPerc / 100));
+        document.getElementById('total').innerText = finalPrice.toFixed(0);
+    }
+
+    function toggleCart(show) { document.getElementById('cart-modal').style.display = show ? 'flex' : 'none'; }
+
+    async function applyCoupon() {
+        const code = document.getElementById('coupon').value.toUpperCase();
+        const res = await fetch(DB + "coupons.json");
+        const data = await res.json();
+        const found = Object.values(data || {}).find(c => c.code === code);
+        if(found) { discountPerc = found.perc; alert('مبروك! خصم ' + found.perc + '%'); updateUI(); }
+        else alert('الكود ده مش شغال');
+    }
+
+    async function checkout() {
+        if(cart.length === 0) return alert('سلتك فاضية!');
+        const order = {
+            customer: document.getElementById('cust-name').value,
+            phone: document.getElementById('cust-phone').value,
+            address: `منزل: ${document.getElementById('cust-home').value}, دور: ${document.getElementById('cust-floor').value}, شقة: ${document.getElementById('cust-flat').value} | ${document.getElementById('cust-address').value}`,
+            items: cart,
+            total: document.getElementById('total').innerText,
+            date: new Date().toLocaleString()
+        };
+        await fetch(DB + "orders.json", { method: 'POST', body: JSON.stringify(order) });
+        alert('ألف مبروك! الأوردر وصل لنا وهنكلمك قريباً.');
+        cart = []; location.reload();
+    }
+
+    loadData();
+</script>
+</body>
+</html>
